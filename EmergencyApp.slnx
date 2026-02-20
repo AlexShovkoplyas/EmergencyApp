@@ -1,0 +1,5 @@
+<Solution>
+  <Project Path="EmergencyApp/EmergencyApp.AppHost/EmergencyApp.AppHost.csproj" />
+  <Project Path="EmergencyApp/EmergencyApp.ServiceDefaults/EmergencyApp.ServiceDefaults.csproj" />
+  <Project Path="EmergencyApp/EmergencyApp.Web/EmergencyApp.Web.csproj" />
+</Solution>

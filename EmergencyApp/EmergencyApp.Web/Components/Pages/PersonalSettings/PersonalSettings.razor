@@ -1,7 +1,12 @@
 @page "/personal-settings"
 @attribute [Microsoft.AspNetCore.Authorization.Authorize]
 @using Microsoft.AspNetCore.Components.Authorization
+@using EmergencyApp.Web.Services
+@using EmergencyApp.Web.Data.Models
+@using System.ComponentModel.DataAnnotations
+@using System.Security.Claims
 @inject AuthenticationStateProvider AuthStateProvider
+@inject UserSettingsService UserSettingsService
 
 <PageTitle>Personal Settings</PageTitle>
 
@@ -11,14 +16,14 @@
         <p class="settings-subtitle">Manage your account preferences</p>
     </div>
 
-    <AuthorizeView>
+    <AuthorizeView Context="authContext">
         <Authorized>
             <div class="settings-section">
                 <h2>Account</h2>
                 <div class="settings-card">
                     <div class="settings-row">
                         <span class="settings-label">Email</span>
-                        <span class="settings-value">@context.User.Identity?.Name</span>
+                        <span class="settings-value">@authContext.User.Identity?.Name</span>
                     </div>
                     <div class="settings-row">
                         <span class="settings-label">Account type</span>
@@ -26,6 +31,84 @@
                     </div>
                 </div>
             </div>
+
+            @if (isLoading)
+            {
+                <div class="settings-section">
+                    <div class="settings-loading">Loading your settings…</div>
+                </div>
+            }
+            else
+            {
+                <div class="settings-section">
+                    <h2>Address</h2>
+                    <div class="settings-card">
+                        <EditForm Model="addressModel" OnValidSubmit="SaveAddress" class="settings-form">
+                            <DataAnnotationsValidator />
+                            <div class="settings-form-body">
+                                <div class="form-field">
+                                    <label class="settings-label" for="addressString">Address</label>
+                                    <InputText id="addressString" class="form-input" @bind-Value="addressModel.AddressString" placeholder="e.g. 123 Main St, Springfield" />
+                                    <ValidationMessage For="() => addressModel.AddressString" class="form-validation" />
+                                </div>
+                                <div class="form-row-two">
+                                    <div class="form-field">
+                                        <label class="settings-label" for="latitude">Latitude</label>
+                                        <InputNumber id="latitude" class="form-input" @bind-Value="addressModel.Latitude" placeholder="e.g. 51.5074" />
+                                    </div>
+                                    <div class="form-field">
+                                        <label class="settings-label" for="longitude">Longitude</label>
+                                        <InputNumber id="longitude" class="form-input" @bind-Value="addressModel.Longitude" placeholder="e.g. -0.1278" />
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="settings-form-footer">
+                                @if (addressSaveStatus == SaveStatus.Saved)
+                                {
+                                    <span class="save-feedback save-feedback--ok">Saved</span>
+                                }
+                                else if (addressSaveStatus == SaveStatus.Error)
+                                {
+                                    <span class="save-feedback save-feedback--error">Failed to save</span>
+                                }
+                                <button type="submit" class="btn-primary">Save address</button>
+                            </div>
+                        </EditForm>
+                    </div>
+                </div>
+
+                <div class="settings-section">
+                    <h2>Contact Person</h2>
+                    <div class="settings-card">
+                        <EditForm Model="contactModel" OnValidSubmit="SaveContactPerson" class="settings-form">
+                            <DataAnnotationsValidator />
+                            <div class="settings-form-body">
+                                <div class="form-field">
+                                    <label class="settings-label" for="fullName">Full name</label>
+                                    <InputText id="fullName" class="form-input" @bind-Value="contactModel.FullName" placeholder="e.g. Jane Doe" />
+                                    <ValidationMessage For="() => contactModel.FullName" class="form-validation" />
+                                </div>
+                                <div class="form-field">
+                                    <label class="settings-label" for="phone">Phone number</label>
+                                    <InputText id="phone" class="form-input" @bind-Value="contactModel.PhoneNumber" placeholder="e.g. +1 555 000 1234" />
+                                    <ValidationMessage For="() => contactModel.PhoneNumber" class="form-validation" />
+                                </div>
+                            </div>
+                            <div class="settings-form-footer">
+                                @if (contactSaveStatus == SaveStatus.Saved)
+                                {
+                                    <span class="save-feedback save-feedback--ok">Saved</span>
+                                }
+                                else if (contactSaveStatus == SaveStatus.Error)
+                                {
+                                    <span class="save-feedback save-feedback--error">Failed to save</span>
+                                }
+                                <button type="submit" class="btn-primary">Save contact</button>
+                            </div>
+                        </EditForm>
+                    </div>
+                </div>
+            }
 
             <div class="settings-section">
                 <h2>Security</h2>
@@ -69,3 +152,96 @@
         </Authorized>
     </AuthorizeView>
 </div>
+
+@code {
+    private enum SaveStatus { None, Saved, Error }
+
+    private class AddressFormModel
+    {
+        [Required(ErrorMessage = "Address is required")]
+        public string AddressString { get; set; } = "";
+        public double Latitude { get; set; }
+        public double Longitude { get; set; }
+    }
+
+    private class ContactPersonFormModel
+    {
+        [Required(ErrorMessage = "Full name is required")]
+        public string FullName { get; set; } = "";
+
+        [Required(ErrorMessage = "Phone number is required")]
+        public string PhoneNumber { get; set; } = "";
+    }
+
+    private AddressFormModel addressModel = new();
+    private ContactPersonFormModel contactModel = new();
+    private SaveStatus addressSaveStatus = SaveStatus.None;
+    private SaveStatus contactSaveStatus = SaveStatus.None;
+    private bool isLoading = true;
+    private string? userId;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+        userId = authState.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+        if (userId is not null)
+        {
+            var (address, contactPerson) = await UserSettingsService.LoadAsync(userId);
+
+            if (address is not null)
+            {
+                addressModel.AddressString = address.AddressString;
+                addressModel.Latitude = address.Latitude;
+                addressModel.Longitude = address.Longitude;
+            }
+
+            if (contactPerson is not null)
+            {
+                contactModel.FullName = contactPerson.FullName;
+                contactModel.PhoneNumber = contactPerson.PhoneNumber;
+            }
+        }
+
+        isLoading = false;
+    }
+
+    private async Task SaveAddress()
+    {
+        if (userId is null) return;
+        addressSaveStatus = SaveStatus.None;
+        try
+        {
+            await UserSettingsService.SaveAddressAsync(userId, new UserAddress
+            {
+                AddressString = addressModel.AddressString,
+                Latitude = addressModel.Latitude,
+                Longitude = addressModel.Longitude
+            });
+            addressSaveStatus = SaveStatus.Saved;
+        }
+        catch
+        {
+            addressSaveStatus = SaveStatus.Error;
+        }
+    }
+
+    private async Task SaveContactPerson()
+    {
+        if (userId is null) return;
+        contactSaveStatus = SaveStatus.None;
+        try
+        {
+            await UserSettingsService.SaveContactPersonAsync(userId, new ContactPerson
+            {
+                FullName = contactModel.FullName,
+                PhoneNumber = contactModel.PhoneNumber
+            });
+            contactSaveStatus = SaveStatus.Saved;
+        }
+        catch
+        {
+            contactSaveStatus = SaveStatus.Error;
+        }
+    }
+}

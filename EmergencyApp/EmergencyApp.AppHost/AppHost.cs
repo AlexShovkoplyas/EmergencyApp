@@ -1,3 +1,5 @@
+using Aspire.Hosting.Azure;
+
 var builder = DistributedApplication.CreateBuilder(args);
 
 var openai = builder.AddConnectionString("openai");
@@ -11,13 +13,21 @@ var postgres = builder.AddPostgres("postgres")
     .WithDataVolume()
     .WithPgAdmin();
 
-var identityDb = postgres.AddDatabase("identity");
+var identityDb = postgres.AddDatabase("EmergencyAppDb");
+
+// Azure Communication Services — provisioned via Bicep.
+// Role assignment grants the current principal (developer locally, managed identity in ACA)
+// Contributor access so DefaultAzureCredential works without a connection string.
+var acs = builder.AddBicepTemplate("communication-services", "Bicep/communication-services.bicep")
+    .WithParameter(AzureBicepResource.KnownParameters.PrincipalId)
+    .WithParameter(AzureBicepResource.KnownParameters.PrincipalType);
 
 var webApp = builder.AddProject<Projects.EmergencyApp_Web>("aichatweb-app");
 webApp
     .WithReference(openai)
     .WithReference(identityDb)
     .WaitFor(identityDb)
+    .WithEnvironment("ACS_ENDPOINT", acs.GetOutput("endpoint"))
     .WithExternalHttpEndpoints();
 webApp
     .WithEnvironment("MARKITDOWN_MCP_URL", markitdown.GetEndpoint(MarkItDownEndpointName));

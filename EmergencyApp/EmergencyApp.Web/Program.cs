@@ -1,3 +1,6 @@
+using Azure.Communication.Identity;
+using Azure.Communication.Sms;
+using Azure.Identity;
 using Microsoft.Extensions.AI;
 using OpenAI;
 using EmergencyApp.Web.Components;
@@ -13,7 +16,7 @@ builder.Services.AddRazorComponents().AddInteractiveServerComponents();
 builder.Services.AddRazorPages();
 
 // Identity with PostgreSQL
-builder.AddNpgsqlDbContext<ApplicationDbContext>("identity");
+builder.AddNpgsqlDbContext<ApplicationDbContext>("EmergencyAppDb");
 
 builder.Services.AddDefaultIdentity<IdentityUser>(options =>
 {
@@ -48,6 +51,20 @@ builder.Services.AddSqliteVectorStore(_ => vectorStoreConnectionString);
 builder.Services.AddSqliteCollection<string, IngestedChunk>(IngestedChunk.CollectionName, vectorStoreConnectionString);
 builder.Services.AddSingleton<DataIngestor>();
 builder.Services.AddSingleton<SemanticSearch>();
+builder.Services.AddScoped<UserSettingsService>();
+
+// Azure Communication Services — endpoint injected by Aspire from Bicep output.
+// DefaultAzureCredential uses the managed identity in ACA and az-cli credentials locally.
+var acsEndpoint = builder.Configuration["ACS_ENDPOINT"];
+if (!string.IsNullOrEmpty(acsEndpoint))
+{
+    var acsCredential = new DefaultAzureCredential();
+    var acsUri = new Uri(acsEndpoint);
+
+    builder.Services.AddSingleton(new CommunicationIdentityClient(acsUri, acsCredential));
+    builder.Services.AddSingleton(new SmsClient(acsUri, acsCredential));
+    builder.Services.AddSingleton<SmsSender>();
+}
 builder.Services.AddKeyedSingleton("ingestion_directory", new DirectoryInfo(Path.Combine(builder.Environment.WebRootPath, "Data")));
 
 var app = builder.Build();

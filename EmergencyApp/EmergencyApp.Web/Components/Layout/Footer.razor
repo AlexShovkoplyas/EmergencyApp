@@ -1,0 +1,22 @@
+@using System.Reflection
+
+<footer class="app-footer">
+    <div class="footer-content">
+        <span class="footer-text">Commit: @GetCommitHash()</span>
+    </div>
+</footer>
+
+@code {
+    private string GetCommitHash()
+    {
+        var assembly = Assembly.GetExecutingAssembly();
+        var version = assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion;
+        
+        if (!string.IsNullOrEmpty(version))
+        {
+            return version;
+        }
+        
+        return "unknown";
+    }
+}

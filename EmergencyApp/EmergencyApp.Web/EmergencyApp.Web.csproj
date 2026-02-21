@@ -7,6 +7,16 @@
     <UserSecretsId>9cf27ce5-5a29-4562-a07c-3bf34e6fc069</UserSecretsId>
   </PropertyGroup>
 
+  <Target Name="SetSourceRevisionId" BeforeTargets="InitializeSourceControlInformation">
+    <Exec Command="git rev-parse --short HEAD" ConsoleToMSBuild="true" IgnoreExitCode="true" StandardOutputImportance="low">
+      <Output TaskParameter="ConsoleOutput" PropertyName="SourceRevisionId" />
+    </Exec>
+  </Target>
+
+  <PropertyGroup>
+    <InformationalVersion>$(SourceRevisionId)</InformationalVersion>
+  </PropertyGroup>
+
   <ItemGroup>
     <PackageReference Include="Aspire.Azure.AI.OpenAI" Version="13.0.0-preview.1.25560.3" />
     <PackageReference Include="Microsoft.Extensions.AI.OpenAI" Version="10.3.0" />

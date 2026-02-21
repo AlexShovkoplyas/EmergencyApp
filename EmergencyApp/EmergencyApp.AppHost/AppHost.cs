@@ -1,9 +1,5 @@
 var builder = DistributedApplication.CreateBuilder(args);
 
-// You will need to set the connection string to your own value
-// You can do this using Visual Studio's "Manage User Secrets" UI, or on the command line:
-//   cd this-project-directory
-//   dotnet user-secrets set ConnectionStrings:openai "Endpoint=https://models.inference.ai.azure.com;Key=YOUR-API-KEY"
 var openai = builder.AddConnectionString("openai");
 
 var MarkItDownEndpointName = "http";
@@ -12,7 +8,9 @@ var markitdown = builder.AddContainer("markitdown", "mcp/markitdown")
     .WithHttpEndpoint(targetPort: 3001, name: MarkItDownEndpointName);
 
 var webApp = builder.AddProject<Projects.EmergencyApp_Web>("aichatweb-app");
-webApp.WithReference(openai);
+webApp
+    .WithReference(openai)
+    .WithExternalHttpEndpoints();
 webApp
     .WithEnvironment("MARKITDOWN_MCP_URL", markitdown.GetEndpoint(MarkItDownEndpointName));
 

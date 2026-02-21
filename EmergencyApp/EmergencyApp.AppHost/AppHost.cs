@@ -8,7 +8,6 @@ var markitdown = builder.AddContainer("markitdown", "mcp/markitdown")
     .WithHttpEndpoint(targetPort: 3001, name: MarkItDownEndpointName);
 
 var postgres = builder.AddPostgres("postgres")
-    .WithDataVolume()
     .WithPgAdmin();
 
 var identityDb = postgres.AddDatabase("identity");

@@ -1,0 +1,71 @@
+@page "/personal-settings"
+@attribute [Microsoft.AspNetCore.Authorization.Authorize]
+@using Microsoft.AspNetCore.Components.Authorization
+@inject AuthenticationStateProvider AuthStateProvider
+
+<PageTitle>Personal Settings</PageTitle>
+
+<div class="settings-container page-width">
+    <div class="settings-header">
+        <h1>Personal Settings</h1>
+        <p class="settings-subtitle">Manage your account preferences</p>
+    </div>
+
+    <AuthorizeView>
+        <Authorized>
+            <div class="settings-section">
+                <h2>Account</h2>
+                <div class="settings-card">
+                    <div class="settings-row">
+                        <span class="settings-label">Email</span>
+                        <span class="settings-value">@context.User.Identity?.Name</span>
+                    </div>
+                    <div class="settings-row">
+                        <span class="settings-label">Account type</span>
+                        <span class="settings-value">Standard</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="settings-section">
+                <h2>Security</h2>
+                <div class="settings-card">
+                    <div class="settings-row">
+                        <div>
+                            <span class="settings-label">Password</span>
+                            <p class="settings-hint">Change your account password via the Identity portal.</p>
+                        </div>
+                        <a href="/Identity/Account/Manage/ChangePassword" class="btn-default">Change password</a>
+                    </div>
+                    <div class="settings-row">
+                        <div>
+                            <span class="settings-label">External logins</span>
+                            <p class="settings-hint">Manage connected accounts (e.g. Google).</p>
+                        </div>
+                        <a href="/Identity/Account/Manage/ExternalLogins" class="btn-default">Manage</a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="settings-section">
+                <h2>Data &amp; Privacy</h2>
+                <div class="settings-card">
+                    <div class="settings-row">
+                        <div>
+                            <span class="settings-label">Download your data</span>
+                            <p class="settings-hint">Get a copy of all data stored about your account.</p>
+                        </div>
+                        <a href="/Identity/Account/Manage/DownloadPersonalData" class="btn-default">Download</a>
+                    </div>
+                    <div class="settings-row">
+                        <div>
+                            <span class="settings-label danger-label">Delete account</span>
+                            <p class="settings-hint">Permanently remove your account and all associated data.</p>
+                        </div>
+                        <a href="/Identity/Account/Manage/DeletePersonalData" class="btn-danger">Delete</a>
+                    </div>
+                </div>
+            </div>
+        </Authorized>
+    </AuthorizeView>
+</div>

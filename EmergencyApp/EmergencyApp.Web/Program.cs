@@ -52,6 +52,7 @@ builder.Services.AddSqliteCollection<string, IngestedChunk>(IngestedChunk.Collec
 builder.Services.AddSingleton<DataIngestor>();
 builder.Services.AddSingleton<SemanticSearch>();
 builder.Services.AddScoped<UserSettingsService>();
+builder.Services.AddScoped<ChatService>();
 
 // Azure Communication Services — endpoint injected by Aspire from Bicep output.
 // DefaultAzureCredential uses the managed identity in ACA and az-cli credentials locally.

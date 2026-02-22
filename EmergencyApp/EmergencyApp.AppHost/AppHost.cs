@@ -21,7 +21,7 @@ var acs = builder.AddBicepTemplate("communication-services", "Bicep/communicatio
     .WithParameter(AzureBicepResource.KnownParameters.PrincipalId)
     .WithParameter(AzureBicepResource.KnownParameters.PrincipalType);
 
-var webApp = builder.AddProject<Projects.EmergencyApp_Web>("aichatweb-app");
+var webApp = builder.AddProject<Projects.EmergencyApp_Web>("aichatweb-app", launchProfileName: "https");
 webApp
     .WithReference(openai)
     .WithReference(postgresDb)

@@ -1,0 +1,58 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "AppHost (https)",
+            "type": "coreclr",
+            "request": "launch",
+            "preLaunchTask": "build",
+            "program": "${workspaceFolder}/EmergencyApp/EmergencyApp.AppHost/bin/Debug/net10.0/EmergencyApp.AppHost.dll",
+            "args": [],
+            "cwd": "${workspaceFolder}/EmergencyApp/EmergencyApp.AppHost",
+            "launchSettingsProfile": "https",
+            "console": "internalConsole",
+            "stopAtEntry": false
+        },
+        {
+            "name": "AppHost (http)",
+            "type": "coreclr",
+            "request": "launch",
+            "preLaunchTask": "build",
+            "program": "${workspaceFolder}/EmergencyApp/EmergencyApp.AppHost/bin/Debug/net10.0/EmergencyApp.AppHost.dll",
+            "args": [],
+            "cwd": "${workspaceFolder}/EmergencyApp/EmergencyApp.AppHost",
+            "launchSettingsProfile": "http",
+            "console": "internalConsole",
+            "stopAtEntry": false
+        },
+        {
+            "name": "Web (https)",
+            "type": "coreclr",
+            "request": "launch",
+            "preLaunchTask": "build",
+            "program": "${workspaceFolder}/EmergencyApp/EmergencyApp.Web/bin/Debug/net10.0/EmergencyApp.Web.dll",
+            "args": [],
+            "cwd": "${workspaceFolder}/EmergencyApp/EmergencyApp.Web",
+            "launchSettingsProfile": "https",
+            "console": "internalConsole",
+            "stopAtEntry": false
+        },
+        {
+            "name": "Web (http)",
+            "type": "coreclr",
+            "request": "launch",
+            "preLaunchTask": "build",
+            "program": "${workspaceFolder}/EmergencyApp/EmergencyApp.Web/bin/Debug/net10.0/EmergencyApp.Web.dll",
+            "args": [],
+            "cwd": "${workspaceFolder}/EmergencyApp/EmergencyApp.Web",
+            "launchSettingsProfile": "http",
+            "console": "internalConsole",
+            "stopAtEntry": false
+        },
+        {
+            "name": ".NET Core Attach",
+            "type": "coreclr",
+            "request": "attach"
+        }
+    ]
+}

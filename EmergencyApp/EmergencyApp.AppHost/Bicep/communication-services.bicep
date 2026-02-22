@@ -1,6 +1,3 @@
-@description('The location for the resource(s) to be deployed.')
-param location string = 'global'
-
 @description('The principal ID that will be granted access (managed identity in prod, current user in local dev).')
 param principalId string = ''
 
@@ -12,7 +9,7 @@ var acsName = 'acs-${uniqueString(resourceGroup().id)}'
 
 resource communicationService 'Microsoft.Communication/communicationServices@2023-04-01' = {
   name: acsName
-  location: location
+  location: 'global'
   properties: {
     dataLocation: 'United States'
   }

@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <rect width="512" height="512" fill="#512bd4" rx="64"/>
+  <g transform="translate(256, 256)">
+    <!-- Emergency symbol -->
+    <circle cx="0" cy="0" r="160" fill="none" stroke="white" stroke-width="20"/>
+    <text x="0" y="20" font-size="180" font-weight="bold" fill="white" text-anchor="middle" font-family="Arial, sans-serif">E</text>
+  </g>
+</svg>

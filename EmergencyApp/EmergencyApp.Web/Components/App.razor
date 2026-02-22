@@ -4,9 +4,16 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Emergency management and communication application" />
+    <meta name="theme-color" content="#512bd4" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="apple-mobile-web-app-title" content="Emergency App" />
     <base href="/" />
     <link rel="stylesheet" href="@Assets["app.css"]" />
     <link rel="stylesheet" href="@Assets["EmergencyApp.Web.styles.css"]" />
+    <link rel="manifest" href="manifest.json" />
+    <link rel="apple-touch-icon" href="icon.svg" />
     <ImportMap />
     <HeadOutlet @rendermode="@renderMode" />
 </head>
@@ -15,6 +22,7 @@
     <Routes @rendermode="@renderMode" />
     <script src="@Assets["app.js"]" type="module"></script>
     <script src="@Assets["testing.js"]"></script>
+    <script src="@Assets["pwa-register.js"]"></script>
     <script src="@Assets["_framework/blazor.web.js"]"></script>
 </body>
 

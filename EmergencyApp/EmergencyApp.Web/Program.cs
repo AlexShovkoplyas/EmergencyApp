@@ -6,14 +6,24 @@ using EmergencyApp.Web.Services;
 using EmergencyApp.Web.Services.Ingestion;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Npgsql;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.AddServiceDefaults();
 builder.Services.AddRazorComponents().AddInteractiveServerComponents();
 builder.Services.AddRazorPages();
 
-// Identity with PostgreSQL
-builder.AddNpgsqlDbContext<ApplicationDbContext>("identity");
+// Identity with PostgreSQL - using NpgsqlDataSource for better connection pooling and observability
+var identityConnectionString = builder.Configuration.GetConnectionString("identity") 
+    ?? throw new InvalidOperationException("Connection string 'identity' not found.");
+
+builder.Services.AddNpgsqlDataSource(identityConnectionString);
+
+builder.Services.AddDbContext<ApplicationDbContext>((sp, options) =>
+{
+    var dataSource = sp.GetRequiredService<NpgsqlDataSource>();
+    options.UseNpgsql(dataSource);
+});
 
 builder.Services.AddDefaultIdentity<IdentityUser>(options =>
 {

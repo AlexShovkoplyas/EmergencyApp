@@ -1,0 +1,192 @@
+@page "/testing"
+@using Microsoft.AspNetCore.Components.Authorization
+@using Microsoft.JSInterop
+@inject IJSRuntime JS
+@attribute [Microsoft.AspNetCore.Authorization.Authorize]
+
+<PageTitle>Testing</PageTitle>
+
+<div class="testing-page">
+    <h1>Testing Features</h1>
+    
+    <div class="testing-actions">
+        
+        <!-- Send Emergency SMS -->
+        <div class="testing-card">
+            <div class="testing-icon">📱</div>
+            <h2>Send Emergency SMS</h2>
+            <p>Send location to emergency contact</p>
+            <button class="testing-btn" @onclick="SendEmergencySMS" disabled="@isGettingLocation">
+                @if (isGettingLocation)
+                {
+                    <span>Getting Location...</span>
+                }
+                else
+                {
+                    <span>Send SMS</span>
+                }
+            </button>
+            @if (!string.IsNullOrEmpty(locationError))
+            {
+                <div class="error-message">@locationError</div>
+            }
+        </div>
+
+        <!-- Call Emergency Number -->
+        <div class="testing-card">
+            <div class="testing-icon">📞</div>
+            <h2>Emergency Call</h2>
+            <p>Call emergency services</p>
+            <a href="tel:@emergencyPhoneNumber" class="testing-btn testing-btn-call">
+                Call @emergencyPhoneNumber
+            </a>
+        </div>
+
+        <!-- Take Photo -->
+        <div class="testing-card">
+            <div class="testing-icon">📷</div>
+            <h2>Take Photo</h2>
+            <p>Capture photo with camera</p>
+            <label class="testing-btn" for="camera-input">
+                Take Photo
+            </label>
+            <InputFile id="camera-input" accept="image/*" capture OnChange="HandlePhotoCapture" style="display: none;" />
+            
+            @if (capturedPhotoUrl != null)
+            {
+                <div class="photo-preview">
+                    <img src="@capturedPhotoUrl" alt="Captured photo" />
+                    <button class="btn-upload" @onclick="UploadPhoto" disabled="@isUploading">
+                        @(isUploading ? "Uploading..." : "Upload Photo")
+                    </button>
+                </div>
+            }
+        </div>
+
+        <!-- Upload Photo from Gallery -->
+        <div class="testing-card">
+            <div class="testing-icon">🖼️</div>
+            <h2>Upload Photo</h2>
+            <p>Select from gallery</p>
+            <label class="testing-btn" for="gallery-input">
+                Choose Photo
+            </label>
+            <InputFile id="gallery-input" accept="image/*" OnChange="HandlePhotoCapture" style="display: none;" />
+        </div>
+
+    </div>
+
+    @if (uploadMessage != null)
+    {
+        <div class="upload-message @(uploadSuccess ? "success" : "error")">
+            @uploadMessage
+        </div>
+    }
+</div>
+
+@code {
+    private string emergencyPhoneNumber = "9112"; // Change to your emergency number
+    private string emergencySMSNumber = "5551234567"; // Change to your emergency contact
+    private bool isGettingLocation = false;
+    private string? locationError = null;
+    private string? capturedPhotoUrl = null;
+    private bool isUploading = false;
+    private string? uploadMessage = null;
+    private bool uploadSuccess = false;
+    private IBrowserFile? selectedPhoto = null;
+
+    private async Task SendEmergencySMS()
+    {
+        isGettingLocation = true;
+        locationError = null;
+        StateHasChanged();
+
+        try
+        {
+            var location = await JS.InvokeAsync<GeolocationResult>("getGeolocation");
+            
+            if (location.Success)
+            {
+                var message = $"EMERGENCY! I need help. My location: https://maps.google.com/?q={location.Latitude},{location.Longitude}";
+                var smsUrl = $"sms:{emergencySMSNumber}?body={Uri.EscapeDataString(message)}";
+                
+                await JS.InvokeVoidAsync("open", smsUrl, "_self");
+            }
+            else
+            {
+                locationError = $"Cannot get location: {location.Error}";
+            }
+        }
+        catch (Exception ex)
+        {
+            locationError = $"Error: {ex.Message}";
+        }
+        finally
+        {
+            isGettingLocation = false;
+            StateHasChanged();
+        }
+    }
+
+    private async Task HandlePhotoCapture(InputFileChangeEventArgs e)
+    {
+        selectedPhoto = e.File;
+        
+        if (selectedPhoto != null)
+        {
+            // Create preview
+            var imageStream = selectedPhoto.OpenReadStream(maxAllowedSize: 10 * 1024 * 1024); // 10MB max
+            var ms = new MemoryStream();
+            await imageStream.CopyToAsync(ms);
+            ms.Position = 0;
+            
+            var imageBytes = ms.ToArray();
+            var base64 = Convert.ToBase64String(imageBytes);
+            capturedPhotoUrl = $"data:{selectedPhoto.ContentType};base64,{base64}";
+            
+            uploadMessage = null;
+            StateHasChanged();
+        }
+    }
+
+    private async Task UploadPhoto()
+    {
+        if (selectedPhoto == null) return;
+
+        isUploading = true;
+        uploadMessage = null;
+        StateHasChanged();
+
+        try
+        {
+            // Here you would implement actual upload to your server
+            // For now, simulating upload
+            await Task.Delay(1000);
+            
+            uploadMessage = $"Photo '{selectedPhoto.Name}' uploaded successfully!";
+            uploadSuccess = true;
+            
+            // In a real implementation, you'd do something like:
+            // var stream = selectedPhoto.OpenReadStream(maxAllowedSize: 10 * 1024 * 1024);
+            // await YourUploadService.UploadAsync(stream, selectedPhoto.Name);
+        }
+        catch (Exception ex)
+        {
+            uploadMessage = $"Upload failed: {ex.Message}";
+            uploadSuccess = false;
+        }
+        finally
+        {
+            isUploading = false;
+            StateHasChanged();
+        }
+    }
+
+    private class GeolocationResult
+    {
+        public bool Success { get; set; }
+        public double Latitude { get; set; }
+        public double Longitude { get; set; }
+        public string? Error { get; set; }
+    }
+}

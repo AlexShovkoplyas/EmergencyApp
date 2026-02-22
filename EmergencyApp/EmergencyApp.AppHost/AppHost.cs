@@ -9,11 +9,10 @@ var markitdown = builder.AddContainer("markitdown", "mcp/markitdown")
     .WithArgs("--http", "--host", "0.0.0.0", "--port", "3001")
     .WithHttpEndpoint(targetPort: 3001, name: MarkItDownEndpointName);
 
-var postgres = builder.AddPostgres("postgres")
-    .WithDataVolume()
-    .WithPgAdmin();
+var postgres = builder.AddAzurePostgresFlexibleServer("postgres")
+    .RunAsContainer(x=>x.WithPgAdmin());
 
-var identityDb = postgres.AddDatabase("EmergencyAppDb");
+var postgresDb = postgres.AddDatabase("EmergencyAppDb");
 
 // Azure Communication Services — provisioned via Bicep.
 // Role assignment grants the current principal (developer locally, managed identity in ACA)
@@ -25,8 +24,8 @@ var acs = builder.AddBicepTemplate("communication-services", "Bicep/communicatio
 var webApp = builder.AddProject<Projects.EmergencyApp_Web>("aichatweb-app");
 webApp
     .WithReference(openai)
-    .WithReference(identityDb)
-    .WaitFor(identityDb)
+    .WithReference(postgresDb)
+    .WaitFor(postgresDb)
     .WithEnvironment("ACS_ENDPOINT", acs.GetOutput("endpoint"))
     .WithExternalHttpEndpoints();
 webApp

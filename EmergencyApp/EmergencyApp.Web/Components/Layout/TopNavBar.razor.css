@@ -75,3 +75,15 @@
     width: 1rem;
     height: 1rem;
 }
+.top-nav-testing {
+    background-color: #dc3545;
+    color: white;
+    border-color: #dc3545;
+    font-weight: 600;
+}
+
+.top-nav-testing:hover {
+    background-color: #c82333;
+    border-color: #c82333;
+    color: white;
+}

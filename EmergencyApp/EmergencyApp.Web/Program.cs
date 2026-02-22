@@ -9,14 +9,14 @@ using EmergencyApp.Web.Services;
 using EmergencyApp.Web.Services.Ingestion;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Npgsql;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.AddServiceDefaults();
 builder.Services.AddRazorComponents().AddInteractiveServerComponents();
 builder.Services.AddRazorPages();
 
-// Identity with PostgreSQL
-builder.AddNpgsqlDbContext<ApplicationDbContext>("EmergencyAppDb");
+builder.AddAzureNpgsqlDbContext<ApplicationDbContext>(connectionName: "EmergencyAppDb");
 
 builder.Services.AddDefaultIdentity<IdentityUser>(options =>
 {
@@ -96,3 +96,4 @@ app.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode();
 
 app.Run();
+

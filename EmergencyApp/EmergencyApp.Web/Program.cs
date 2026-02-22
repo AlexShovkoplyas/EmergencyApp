@@ -76,6 +76,9 @@ using (var scope = app.Services.CreateScope())
     await db.Database.MigrateAsync();
 }
 
+// Kick off document ingestion in the background so it's ready before the first chat message
+_ = app.Services.GetRequiredService<SemanticSearch>().LoadDocumentsAsync();
+
 app.MapDefaultEndpoints();
 
 // Configure the HTTP request pipeline.

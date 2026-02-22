@@ -1,3 +1,7 @@
+@description('Injected by Aspire/azd — ignored here because Communication Services only supports location: global.')
+#disable-next-line no-unused-params
+param location string = 'global'
+
 @description('The principal ID that will be granted access (managed identity in prod, current user in local dev).')
 param principalId string = ''
 

@@ -42,6 +42,16 @@ module communication_services 'communication-services/communication-services.bic
     principalType: 'ServicePrincipal'
   }
 }
+
+module speech_service 'speech-service/speech-service.bicep' = {
+  name: 'speech-service'
+  scope: rg
+  params: {
+    location: location
+    principalId: resources.outputs.MANAGED_IDENTITY_PRINCIPAL_ID
+    principalType: 'ServicePrincipal'
+  }
+}
 module postgres 'postgres/postgres.module.bicep' = {
   name: 'postgres'
   scope: rg
@@ -71,5 +81,7 @@ output AZURE_CONTAINER_APPS_ENVIRONMENT_NAME string = resources.outputs.AZURE_CO
 output AZURE_CONTAINER_APPS_ENVIRONMENT_ID string = resources.outputs.AZURE_CONTAINER_APPS_ENVIRONMENT_ID
 output AZURE_CONTAINER_APPS_ENVIRONMENT_DEFAULT_DOMAIN string = resources.outputs.AZURE_CONTAINER_APPS_ENVIRONMENT_DEFAULT_DOMAIN
 output COMMUNICATION_SERVICES_ENDPOINT string = communication_services.outputs.endpoint
+output SPEECH_KEY string = speech_service.outputs.key
+output SPEECH_REGION string = speech_service.outputs.location
 output POSTGRES_CONNECTIONSTRING string = postgres.outputs.connectionString
 output POSTGRES_HOSTNAME string = postgres.outputs.hostName

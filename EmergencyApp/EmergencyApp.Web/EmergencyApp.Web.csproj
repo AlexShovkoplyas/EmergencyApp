@@ -43,5 +43,13 @@
   <ItemGroup>
     <ProjectReference Include="..\EmergencyApp.ServiceDefaults\EmergencyApp.ServiceDefaults.csproj" />
   </ItemGroup>
+
+  <!-- Install npm dependencies and copy the Speech SDK browser bundle to wwwroot/lib/speech/ -->
+  <Target Name="NpmInstallSpeechSdk" BeforeTargets="Build"
+          Inputs="package.json"
+          Outputs="wwwroot/lib/speech/microsoft.cognitiveservices.speech.sdk.bundle-min.js">
+    <Exec Command="npm install --prefer-offline" WorkingDirectory="$(ProjectDir)" />
+    <Exec Command="node scripts/copy-speech-sdk.js" WorkingDirectory="$(ProjectDir)" />
+  </Target>
   
 </Project>

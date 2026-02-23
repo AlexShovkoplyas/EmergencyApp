@@ -73,6 +73,10 @@ if (!string.IsNullOrEmpty(acsEndpoint))
     builder.Services.AddSingleton(new SmsClient(acsUri, acsCredential));
     builder.Services.AddSingleton<SmsSender>();
 }
+// Azure Speech Service — endpoint and region injected by Aspire from Bicep outputs.
+// DefaultAzureCredential exchanges an AAD token for speech recognition in the browser.
+builder.Services.AddSingleton<SpeechTokenService>();
+
 builder.Services.AddKeyedSingleton("ingestion_directory", new DirectoryInfo(Path.Combine(builder.Environment.WebRootPath, "Data")));
 
 var app = builder.Build();
@@ -88,6 +92,16 @@ using (var scope = app.Services.CreateScope())
 _ = app.Services.GetRequiredService<SemanticSearch>().LoadDocumentsAsync();
 
 app.MapDefaultEndpoints();
+
+app.MapGet("/api/speech/available", (SpeechTokenService s) => Results.Ok(s.IsConfigured));
+
+app.MapGet("/api/speech/token", async (SpeechTokenService s, CancellationToken ct) =>
+{
+    if (!s.IsConfigured)
+        return Results.StatusCode(503);
+    var info = await s.GetTokenAsync(ct);
+    return Results.Ok(info);
+});
 
 // Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())

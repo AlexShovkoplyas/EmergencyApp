@@ -23,6 +23,13 @@ var acs = builder.AddBicepTemplate("communication-services", "Bicep/communicatio
 
 var sheltersApi = builder.AddProject<Projects.EmergencyApp_SheltersApi>("shelters-api");
 
+// Azure AI Speech Service — provisioned via Bicep.
+// Role assignment grants the Cognitive Services Speech User role to the current principal
+// so DefaultAzureCredential can obtain AAD tokens for STT without an API key.
+var speech = builder.AddBicepTemplate("speech-service", "Bicep/speech-service.bicep")
+    .WithParameter(AzureBicepResource.KnownParameters.PrincipalId)
+    .WithParameter(AzureBicepResource.KnownParameters.PrincipalType);
+
 var webApp = builder.AddProject<Projects.EmergencyApp_Web>("aichatweb-app", launchProfileName: "https");
 webApp
     .WithReference(openai)
@@ -30,7 +37,10 @@ webApp
     .WaitFor(postgresDb)
     .WithReference(sheltersApi)
     .WaitFor(sheltersApi)
+    .WaitFor(speech)
     .WithEnvironment("ACS_ENDPOINT", acs.GetOutput("endpoint"))
+    .WithEnvironment("SPEECH_KEY", speech.GetOutput("key"))
+    .WithEnvironment("SPEECH_REGION", speech.GetOutput("location"))
     .WithExternalHttpEndpoints();
 webApp
     .WithEnvironment("MARKITDOWN_MCP_URL", markitdown.GetEndpoint(MarkItDownEndpointName));

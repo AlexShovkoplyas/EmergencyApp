@@ -293,6 +293,9 @@ FakesAssemblies/
 .ntvs_analysis.dat
 node_modules/
 
+# Generated Speech SDK browser bundle (restored by npm build target)
+**/wwwroot/lib/speech/
+
 # Visual Studio 6 build log
 *.plg
 

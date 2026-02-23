@@ -1,0 +1,10 @@
+{
+  "name": "emergencyapp-web",
+  "private": true,
+  "scripts": {
+    "copy-speech-sdk": "node scripts/copy-speech-sdk.js"
+  },
+  "dependencies": {
+    "microsoft-cognitiveservices-speech-sdk": "1.48.0"
+  }
+}

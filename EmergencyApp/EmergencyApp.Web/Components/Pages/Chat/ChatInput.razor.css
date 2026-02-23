@@ -1,4 +1,4 @@
-﻿.input-box {
+.input-box {
     display: flex; 
     flex-direction: column; 
     background: white;
@@ -32,6 +32,56 @@ textarea {
 .tool-icon {
     width: 1.25rem;
     height: 1.25rem;
+}
+
+.lang-select {
+    font-size: 0.7rem;
+    font-weight: 600;
+    color: #888;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    padding: 1px 2px;
+    margin-right: 4px;
+    background: transparent;
+    cursor: pointer;
+    appearance: none;
+    -webkit-appearance: none;
+    min-width: 2.6rem;
+    text-align: center;
+}
+
+    .lang-select:hover {
+        color: black;
+        border-color: #aaa;
+    }
+
+    .lang-select:disabled {
+        opacity: 0.4;
+        cursor: default;
+    }
+
+.mic-button {
+    color: #888;
+    transition: color 0.2s;
+}
+
+    .mic-button:hover {
+        color: black;
+    }
+
+    .mic-button:disabled {
+        opacity: 0.4;
+        cursor: default;
+    }
+
+    .mic-button.listening {
+        color: #dc2626;
+        animation: mic-pulse 1.5s ease-in-out infinite;
+    }
+
+@keyframes mic-pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.45; }
 }
 
 .send-button {

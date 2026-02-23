@@ -34,6 +34,32 @@ textarea {
     height: 1.25rem;
 }
 
+.lang-select {
+    font-size: 0.7rem;
+    font-weight: 600;
+    color: #888;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    padding: 1px 2px;
+    margin-right: 4px;
+    background: transparent;
+    cursor: pointer;
+    appearance: none;
+    -webkit-appearance: none;
+    min-width: 2.6rem;
+    text-align: center;
+}
+
+    .lang-select:hover {
+        color: black;
+        border-color: #aaa;
+    }
+
+    .lang-select:disabled {
+        opacity: 0.4;
+        cursor: default;
+    }
+
 .mic-button {
     color: #888;
     transition: color 0.2s;

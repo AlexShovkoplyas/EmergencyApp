@@ -18,6 +18,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\EmergencyApp.Web\EmergencyApp.Web.csproj" />
+    <ProjectReference Include="..\EmergencyApp.SheltersApi\EmergencyApp.SheltersApi.csproj" />
   </ItemGroup>
 
 </Project>

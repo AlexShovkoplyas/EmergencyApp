@@ -3,7 +3,7 @@ using Microsoft.Extensions.AI;
 
 namespace EmergencyApp.Web.Services;
 
-public class ChatService(IChatClient chatClient, SemanticSearch search) : IDisposable
+public class ChatService(IChatClient chatClient, SemanticSearch search, SheltersMcpClientProvider sheltersMcp) : IDisposable
 {
     private const string SystemPrompt = @"
         You are an assistant who answers questions about information you retrieve.
@@ -21,6 +21,9 @@ public class ChatService(IChatClient chatClient, SemanticSearch search) : IDispo
 
         The quote must be max 5 words, taken word-for-word from the search result, and is the basis for why the citation is relevant.
         Don't refer to the presence of citations; just emit these tags right at the end, with no surrounding text.
+
+        Use the FindNearestShelters tool when the user asks about nearby bomb shelters, safe places, or shelter locations.
+        Present shelter results in a clear list with name, distance, address, capacity and description.
         ";
 
     private readonly List<ChatMessage> _messages = [];
@@ -52,6 +55,7 @@ public class ChatService(IChatClient chatClient, SemanticSearch search) : IDispo
         [
             AIFunctionFactory.Create(LoadDocumentsAsync),
             AIFunctionFactory.Create(SearchAsync),
+            ..sheltersMcp.Tools,
         ];
     }
 

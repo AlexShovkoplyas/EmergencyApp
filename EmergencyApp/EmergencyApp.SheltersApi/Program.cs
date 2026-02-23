@@ -1,5 +1,7 @@
 using EmergencyApp.SheltersApi.Data;
 using EmergencyApp.SheltersApi.Endpoints;
+using EmergencyApp.SheltersApi.Services;
+using EmergencyApp.SheltersApi.Tools;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -15,6 +17,12 @@ var connectionString = builder.Configuration.GetConnectionString("SheltersDb")
 
 builder.Services.AddDbContext<SheltersDbContext>(options =>
     options.UseSqlite(connectionString));
+
+builder.Services.AddScoped<ShelterQueryService>();
+
+builder.Services.AddMcpServer()
+    .WithHttpTransport()
+    .WithTools<ShelterTools>();
 
 var app = builder.Build();
 
@@ -32,5 +40,6 @@ using (var scope = app.Services.CreateScope())
 }
 
 app.MapShelterEndpoints();
+app.MapMcp("/mcp");
 
 app.Run();

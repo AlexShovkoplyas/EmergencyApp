@@ -21,11 +21,15 @@ var acs = builder.AddBicepTemplate("communication-services", "Bicep/communicatio
     .WithParameter(AzureBicepResource.KnownParameters.PrincipalId)
     .WithParameter(AzureBicepResource.KnownParameters.PrincipalType);
 
+var sheltersApi = builder.AddProject<Projects.EmergencyApp_SheltersApi>("shelters-api");
+
 var webApp = builder.AddProject<Projects.EmergencyApp_Web>("aichatweb-app", launchProfileName: "https");
 webApp
     .WithReference(openai)
     .WithReference(postgresDb)
     .WaitFor(postgresDb)
+    .WithReference(sheltersApi)
+    .WaitFor(sheltersApi)
     .WithEnvironment("ACS_ENDPOINT", acs.GetOutput("endpoint"))
     .WithExternalHttpEndpoints();
 webApp

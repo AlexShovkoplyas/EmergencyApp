@@ -54,6 +54,13 @@ builder.Services.AddSingleton<SemanticSearch>();
 builder.Services.AddScoped<UserSettingsService>();
 builder.Services.AddScoped<ChatService>();
 
+builder.Services.AddHttpClient("shelters-mcp", client =>
+    client.BaseAddress = new Uri("http://shelters-api/mcp"))
+    .AddServiceDiscovery();
+
+builder.Services.AddSingleton<SheltersMcpClientProvider>();
+builder.Services.AddHostedService(sp => sp.GetRequiredService<SheltersMcpClientProvider>());
+
 // Azure Communication Services — endpoint injected by Aspire from Bicep output.
 // DefaultAzureCredential uses the managed identity in ACA and az-cli credentials locally.
 var acsEndpoint = builder.Configuration["ACS_ENDPOINT"];

@@ -1,13 +1,17 @@
 using Aspire.Hosting.Azure;
+using Aspire.Hosting.GitHub;
 
 var builder = DistributedApplication.CreateBuilder(args);
 
 // var openai = builder.AddConnectionString("openai");
-var openai = builder.AddOpenAI("openai")
-    .WithEndpoint("https://models.inference.ai.azure.com");
+//var openai = builder.AddOpenAI("openai")
+//    .WithEndpoint("https://models.inference.ai.azure.com");
+//var chat = openai.AddModel("chat", "gpt-4o-mini").WithHealthCheck();
+//var embeddings = openai.AddModel("embeddings", "text-embedding-3-small").WithHealthCheck();
 
-var chat = openai.AddModel("chat", "gpt-4o-mini").WithHealthCheck();
-var embeddings = openai.AddModel("embeddings", "text-embedding-3-small").WithHealthCheck();
+var chat = builder.AddGitHubModel("chat", GitHubModel.OpenAI.OpenAIGpt4oMini);
+var embeddings = builder.AddGitHubModel("embeddings", GitHubModel.OpenAI.OpenAITextEmbedding3Small);
+
 
 var MarkItDownEndpointName = "http";
 var markitdown = builder.AddContainer("markitdown", "mcp/markitdown")

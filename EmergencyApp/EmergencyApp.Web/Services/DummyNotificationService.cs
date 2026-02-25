@@ -1,6 +1,6 @@
-namespace EmergencyApp.Web.Agents;
+namespace EmergencyApp.Web.Services;
 
-public class NotificationService
+public class DummyNotificationService
 {
     public void SendNotification(string summary, string type)
     {

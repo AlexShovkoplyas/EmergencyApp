@@ -4,6 +4,7 @@
 @using Microsoft.Agents.AI
 @inject AIAgent Agent
 @inject NavigationManager Nav
+@inject SessionState SessionState
 @implements IDisposable
 
 <PageTitle>Chat</PageTitle>
@@ -17,6 +18,12 @@
 </ChatMessageList>
 
 <div class="chat-container">
+    @if (!string.IsNullOrEmpty(lastResponderName))
+    {
+        <div class="last-responder-label">
+            Last responded by: @lastResponderName
+        </div>
+    }
     <ChatSuggestions OnSelected="@AddUserMessageAsync" @ref="@chatSuggestions" />
     <ChatInput OnSend="@AddUserMessageAsync" @ref="@chatInput" />
     <SurveyPrompt /> @* Remove this line to eliminate the template survey message *@
@@ -30,10 +37,12 @@
     private ChatMessage? currentResponseMessage;
     private ChatInput? chatInput;
     private ChatSuggestions? chatSuggestions;
+    private string? lastResponderName;
 
     protected override void OnInitialized()
     {
         statefulMessageCount = 0;
+        SessionState.Messages = messages;
     }
 
     private async Task AddUserMessageAsync(ChatMessage userMessage)
@@ -58,6 +67,12 @@
             
             await foreach (var update in Agent.RunStreamingAsync(messages, cancellationToken: currentResponseCancellation.Token))
             {
+                if (!string.IsNullOrEmpty(update.AuthorName))
+                {
+                    currentResponseMessage.AuthorName = update.AuthorName;
+                    lastResponderName = update.AuthorName;
+                }
+
                 var text = update.ToString();
                 if (!string.IsNullOrEmpty(text))
                 {

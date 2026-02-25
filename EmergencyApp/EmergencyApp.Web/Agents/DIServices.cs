@@ -1,4 +1,5 @@
 using System;
+using EmergencyApp.Web.Services;
 using Microsoft.Agents.AI;
 using Microsoft.Extensions.AI;
 using ModelContextProtocol.Protocol;
@@ -11,8 +12,8 @@ public static class DIServices
     {
         services.AddScoped<RootAgentFactory>();
         services.AddScoped<EmergencyManager>();
-        services.AddScoped<EmergencySmsNotificationProcessor>();
-        services.AddScoped<NotificationService>();
+        services.AddScoped<EmergencyNotificationProcessor>();
+        services.AddScoped<DummyNotificationService>();
         services.AddScoped((sp) => sp.GetRequiredService<RootAgentFactory>().Build());
         services.AddKeyedScoped(AgentNames.SummarizeAgent, (sp,_) => AgentFactory.CreateSummarizerAgent(sp.GetRequiredService<IChatClient>()));
         return services;

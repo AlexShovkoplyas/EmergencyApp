@@ -6,7 +6,7 @@ namespace EmergencyApp.Web.Services;
 public class EmailSender(EmailClient emailClient, IConfiguration configuration, ILogger<EmailSender> logger)
 {
     private readonly string _senderAddress = configuration["ACS_SENDER_EMAIL"]
-        ?? "DoNotReply@example.com"; // Fallback or throw if critical
+        ?? throw new Exception(); // Fallback or throw if critical "DoNotReply@f2ba63a3-35cd-47dc-86ba-d36b3592db6a.azurecomm.net"
 
     /// <summary>
     /// Sends an email to the given recipient.

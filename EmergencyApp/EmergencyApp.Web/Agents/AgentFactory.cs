@@ -76,10 +76,10 @@ public static class AgentFactory
 
     public static AIAgent CreateEmergencyMonitorAgent(IChatClient chatClient, EmergencyManager emergencyManager)
     {
-        var sendSmsTool = AIFunctionFactory.Create(emergencyManager.SendSMS);
+        var sendingTool = AIFunctionFactory.Create(emergencyManager.InitiateSendingNotification);
 
         var clientWithTools = chatClient.AsBuilder()
-            .ConfigureOptions(o => o.Tools = new[] { sendSmsTool })
+            .ConfigureOptions(o => o.Tools = new[] { sendingTool })
             .UseFunctionInvocation()
             .Build();
 

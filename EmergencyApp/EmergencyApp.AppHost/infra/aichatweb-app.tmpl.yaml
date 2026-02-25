@@ -34,6 +34,8 @@ properties:
             value: {{ .Env.MANAGED_IDENTITY_CLIENT_ID }}
           - name: ACS_ENDPOINT
             value: '{{ .Env.COMMUNICATION_SERVICES_ENDPOINT }}'
+          - name: ACS_SENDER_EMAIL
+            value: '{{ .Env.ACS_SENDER_EMAIL }}'
           - name: ASPNETCORE_FORWARDEDHEADERS_ENABLED
             value: "true"
           - name: EMERGENCYAPPDB_DATABASENAME

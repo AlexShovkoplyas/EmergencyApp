@@ -4,7 +4,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace EmergencyApp.Web.Services;
 
-public class UserSettingsService(ApplicationDbContext db)
+public class UserSettingsService(ApplicationDbContext db, SessionState sessionState)
 {
     public async Task<(UserAddress? address, ContactPerson? contactPerson)> LoadAsync(string userId)
     {
@@ -15,6 +15,11 @@ public class UserSettingsService(ApplicationDbContext db)
             .FirstOrDefaultAsync(us => us.UserId == userId);
 
         return (settings?.Address, settings?.ContactPerson);
+    }
+
+    public async Task<(UserAddress? address, ContactPerson? contactPerson)> LoadCurrentAsync()
+    {
+        return await LoadAsync(await sessionState.GetCurrentUserId());
     }
 
     public async Task SaveAddressAsync(string userId, UserAddress address)

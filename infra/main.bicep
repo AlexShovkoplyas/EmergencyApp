@@ -17,6 +17,7 @@ param openai string
 
 var tags = {
   'azd-env-name': environmentName
+  'force-update': '2026-02-25-v1'
 }
 
 resource rg 'Microsoft.Resources/resourceGroups@2022-09-01' = {
@@ -81,6 +82,7 @@ output AZURE_CONTAINER_APPS_ENVIRONMENT_NAME string = resources.outputs.AZURE_CO
 output AZURE_CONTAINER_APPS_ENVIRONMENT_ID string = resources.outputs.AZURE_CONTAINER_APPS_ENVIRONMENT_ID
 output AZURE_CONTAINER_APPS_ENVIRONMENT_DEFAULT_DOMAIN string = resources.outputs.AZURE_CONTAINER_APPS_ENVIRONMENT_DEFAULT_DOMAIN
 output COMMUNICATION_SERVICES_ENDPOINT string = communication_services.outputs.endpoint
+output ACS_SENDER_EMAIL string = communication_services.outputs.senderAddress
 output SPEECH_KEY string = speech_service.outputs.key
 output SPEECH_REGION string = speech_service.outputs.location
 output POSTGRES_CONNECTIONSTRING string = postgres.outputs.connectionString

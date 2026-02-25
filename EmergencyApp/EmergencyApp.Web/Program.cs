@@ -69,10 +69,19 @@ builder.Services.AddSingleton<GeoSearchAgentFactory>();
 builder.Services.AddSingleton<SheltersMcpClientProvider>();
 builder.Services.AddHostedService(sp => sp.GetRequiredService<SheltersMcpClientProvider>());
 
-// Azure Communication Services — endpoint injected by Aspire from Bicep output.
-// DefaultAzureCredential uses the managed identity in ACA and az-cli credentials locally.
+// Azure Communication Services — connection string preferred for data-plane auth;
+// falls back to DefaultAzureCredential + endpoint if connection string is absent.
+var acsConnectionString = builder.Configuration["ACS_CONNECTION_STRING"];
 var acsEndpoint = builder.Configuration["ACS_ENDPOINT"];
-if (!string.IsNullOrEmpty(acsEndpoint))
+if (!string.IsNullOrEmpty(acsConnectionString))
+{
+    builder.Services.AddSingleton(new CommunicationIdentityClient(acsConnectionString));
+    builder.Services.AddSingleton(new SmsClient(acsConnectionString));
+    builder.Services.AddSingleton<SmsSender>();
+    builder.Services.AddSingleton(new EmailClient(acsConnectionString));
+    builder.Services.AddSingleton<EmailSender>();
+}
+else if (!string.IsNullOrEmpty(acsEndpoint))
 {
     var acsCredential = new DefaultAzureCredential();
     var acsUri = new Uri(acsEndpoint);
@@ -80,13 +89,6 @@ if (!string.IsNullOrEmpty(acsEndpoint))
     builder.Services.AddSingleton(new CommunicationIdentityClient(acsUri, acsCredential));
     builder.Services.AddSingleton(new SmsClient(acsUri, acsCredential));
     builder.Services.AddSingleton<SmsSender>();
-    
-    // EmailClient usually requires a different endpoint (Data Plane) than the Management Plane or Identity.
-    // However, if using the same resource, it might work.
-    // Often Email is a separate resource or has a specific endpoint like "https://<resource-name>.unitedstates.communication.azure.com"
-    // Let's assume the same endpoint for now, or check if we need a separate configuration.
-    // Actually, Email Communication Services is often a separate resource linked to ACS.
-    // The endpoint for EmailClient is usually the ACS endpoint.
     builder.Services.AddSingleton(new EmailClient(acsUri, acsCredential));
     builder.Services.AddSingleton<EmailSender>();
 }

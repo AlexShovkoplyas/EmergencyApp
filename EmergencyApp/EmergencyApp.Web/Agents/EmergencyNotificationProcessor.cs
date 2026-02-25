@@ -1,17 +1,20 @@
+using EmergencyApp.Web.Services;
 using Microsoft.Agents.AI;
 using Microsoft.Extensions.AI;
 
 namespace EmergencyApp.Web.Agents;
 
-public class EmergencySmsNotificationProcessor
+public class EmergencyNotificationProcessor
 {
     private readonly AIAgent _summarizerAgent;
-    private readonly NotificationService _notificationService;
+    private readonly EmailSender _emailSender;
+    private readonly UserSettingsService _userSettingsService;
 
-    public EmergencySmsNotificationProcessor([FromKeyedServices(AgentNames.SummarizeAgent)] AIAgent summarizerAgent, NotificationService notificationService)
+    public EmergencyNotificationProcessor([FromKeyedServices(AgentNames.SummarizeAgent)] AIAgent summarizerAgent, EmailSender emailSender, UserSettingsService userSettingsService)
     {
         _summarizerAgent = summarizerAgent;
-        _notificationService = notificationService;
+        _emailSender = emailSender;
+        this._userSettingsService = userSettingsService;
     }
 
     public async Task ProcessNotificationAsync(List<ChatMessage> history, string type)
@@ -35,6 +38,9 @@ public class EmergencySmsNotificationProcessor
             }
         }
 
-        _notificationService.SendNotification(summary, type);
+        var settings = await _userSettingsService.LoadCurrentAsync();
+        var toEmail = settings.contactPerson.Email;
+
+        await _emailSender.SendAsync(toEmail, "Emergency", summary);
     }
 }

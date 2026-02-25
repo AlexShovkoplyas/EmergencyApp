@@ -1,3 +1,4 @@
+using EmergencyApp.Web.Services;
 using Microsoft.Extensions.AI;
 using System.ComponentModel;
 using System.Timers;
@@ -5,21 +6,13 @@ using Timer = System.Timers.Timer;
 
 namespace EmergencyApp.Web.Agents;
 
-public class EmergencyManager
+public class EmergencyManager(EmergencyNotificationProcessor processor, SessionState sessionState)
 {
-    private readonly EmergencySmsNotificationProcessor _processor;
     private Timer? _timer;
-    private readonly object _lock = new();
-    
-    public List<ChatMessage>? History { get; set; }
+    private readonly object _lock = new();   
 
-    public EmergencyManager(EmergencySmsNotificationProcessor processor)
-    {
-        _processor = processor;
-    }
-
-    [Description("Sends an SMS notification to emergency services. Use immediate=true for immediate life-threatening situations, or immediate=false to delay and batch notifications.")]
-    public async Task SendSMS(bool immediate)
+    [Description("Sends notification to emergency services. Use immediate=true for immediate life-threatening situations, or immediate=false to delay and batch notifications.")]
+    public async Task InitiateSendingNotification(bool immediate)
     {
         if (immediate)
         {
@@ -73,9 +66,9 @@ public class EmergencyManager
             }
         }
 
-        if (History != null)
+        if (sessionState.Messages != null)
         {
-             await _processor.ProcessNotificationAsync(History, type);
+             await processor.ProcessNotificationAsync(sessionState.Messages, type);
         }
         else
         {

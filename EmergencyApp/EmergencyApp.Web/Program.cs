@@ -10,6 +10,8 @@ using EmergencyApp.Web.Services.Ingestion;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Npgsql;
+using Microsoft.Agents.AI;
+using Azure.AI.OpenAI;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.AddServiceDefaults();
@@ -38,12 +40,8 @@ if (!string.IsNullOrEmpty(googleClientId) && !string.IsNullOrEmpty(googleClientS
         });
 }
 
-var openai = builder.AddAzureOpenAIClient("openai");
-openai.AddChatClient("gpt-4o-mini")
-    .UseFunctionInvocation()
-    .UseOpenTelemetry(configure: c =>
-        c.EnableSensitiveData = builder.Environment.IsDevelopment());
-openai.AddEmbeddingGenerator("text-embedding-3-small");
+builder.AddOpenAIClient("chat").AddChatClient();
+builder.AddOpenAIClient("embeddings").AddEmbeddingGenerator();
 
 var vectorStorePath = Path.Combine(AppContext.BaseDirectory, "vector-store.db");
 var vectorStoreConnectionString = $"Data Source={vectorStorePath}";
@@ -57,6 +55,11 @@ builder.Services.AddScoped<ChatService>();
 builder.Services.AddHttpClient("shelters-mcp", client =>
     client.BaseAddress = new Uri("http://shelters-api/mcp"))
     .AddServiceDiscovery();
+
+builder.Services.AddHttpClient("geo-search-mcp", client =>
+    client.BaseAddress = new Uri("http://localhost:5000/sse"));
+
+builder.Services.AddSingleton<GeoSearchAgentFactory>();
 
 builder.Services.AddSingleton<SheltersMcpClientProvider>();
 builder.Services.AddHostedService(sp => sp.GetRequiredService<SheltersMcpClientProvider>());

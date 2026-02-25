@@ -2,7 +2,12 @@ using Aspire.Hosting.Azure;
 
 var builder = DistributedApplication.CreateBuilder(args);
 
-var openai = builder.AddConnectionString("openai");
+// var openai = builder.AddConnectionString("openai");
+var openai = builder.AddOpenAI("openai")
+    .WithEndpoint("https://models.inference.ai.azure.com");
+
+var chat = openai.AddModel("chat", "gpt-4o-mini").WithHealthCheck();
+var embeddings = openai.AddModel("embeddings", "text-embedding-3-small").WithHealthCheck();
 
 var MarkItDownEndpointName = "http";
 var markitdown = builder.AddContainer("markitdown", "mcp/markitdown")
@@ -10,7 +15,7 @@ var markitdown = builder.AddContainer("markitdown", "mcp/markitdown")
     .WithHttpEndpoint(targetPort: 3001, name: MarkItDownEndpointName);
 
 var postgres = builder.AddAzurePostgresFlexibleServer("postgres")
-    .RunAsContainer(x=>x.WithPgAdmin());
+    .RunAsContainer(x => x.WithPgAdmin());
 
 var postgresDb = postgres.AddDatabase("EmergencyAppDb");
 
@@ -32,7 +37,8 @@ var speech = builder.AddBicepTemplate("speech-service", "Bicep/speech-service.bi
 
 var webApp = builder.AddProject<Projects.EmergencyApp_Web>("aichatweb-app", launchProfileName: "https");
 webApp
-    .WithReference(openai)
+    .WithReference(chat)
+    .WithReference(embeddings)
     .WithReference(postgresDb)
     .WaitFor(postgresDb)
     .WithReference(sheltersApi)

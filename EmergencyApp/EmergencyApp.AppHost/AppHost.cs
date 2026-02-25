@@ -16,10 +16,11 @@ var embeddings = builder.AddGitHubModel("embeddings", GitHubModel.OpenAI.OpenAIT
 var MarkItDownEndpointName = "http";
 var markitdown = builder.AddContainer("markitdown", "mcp/markitdown")
     .WithArgs("--http", "--host", "0.0.0.0", "--port", "3001")
-    .WithHttpEndpoint(targetPort: 3001, name: MarkItDownEndpointName);
+    .WithHttpEndpoint(targetPort: 3001, name: MarkItDownEndpointName)
+    .WithLifetime(ContainerLifetime.Persistent);
 
 var postgres = builder.AddAzurePostgresFlexibleServer("postgres")
-    .RunAsContainer(x => x.WithPgAdmin());
+    .RunAsContainer(x => x.WithPgAdmin().WithLifetime(ContainerLifetime.Persistent));
 
 var postgresDb = postgres.AddDatabase("EmergencyAppDb");
 
@@ -51,8 +52,7 @@ webApp
     .WithEnvironment("ACS_ENDPOINT", acs.GetOutput("endpoint"))
     .WithEnvironment("SPEECH_KEY", speech.GetOutput("key"))
     .WithEnvironment("SPEECH_REGION", speech.GetOutput("location"))
-    .WithExternalHttpEndpoints();
-webApp
+    .WithExternalHttpEndpoints()
     .WithEnvironment("MARKITDOWN_MCP_URL", markitdown.GetEndpoint(MarkItDownEndpointName));
 
 builder.Build().Run();

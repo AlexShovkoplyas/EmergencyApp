@@ -1,17 +1,16 @@
 using Azure.Communication.Identity;
 using Azure.Communication.Sms;
+using Azure.Communication.Email;
 using Azure.Identity;
 using Microsoft.Extensions.AI;
-using OpenAI;
 using EmergencyApp.Web.Components;
 using EmergencyApp.Web.Data;
 using EmergencyApp.Web.Services;
 using EmergencyApp.Web.Services.Ingestion;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using Npgsql;
-using Microsoft.Agents.AI;
-using Azure.AI.OpenAI;
+using EmergencyApp.Web.Agents;
+using EmergencyApp.Web.Endpoints;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.AddServiceDefaults();
@@ -43,14 +42,20 @@ if (!string.IsNullOrEmpty(googleClientId) && !string.IsNullOrEmpty(googleClientS
 builder.AddOpenAIClient("chat").AddChatClient();
 builder.AddOpenAIClient("embeddings").AddEmbeddingGenerator();
 
-var vectorStorePath = Path.Combine(AppContext.BaseDirectory, "vector-store.db");
-var vectorStoreConnectionString = $"Data Source={vectorStorePath}";
-builder.Services.AddSqliteVectorStore(_ => vectorStoreConnectionString);
-builder.Services.AddSqliteCollection<string, IngestedChunk>(IngestedChunk.CollectionName, vectorStoreConnectionString);
-builder.Services.AddSingleton<DataIngestor>();
-builder.Services.AddSingleton<SemanticSearch>();
+// var vectorStorePath = Path.Combine(AppContext.BaseDirectory, "vector-store.db");
+// var vectorStoreConnectionString = $"Data Source={vectorStorePath}";
+// builder.Services.AddSqliteVectorStore(_ => vectorStoreConnectionString);
+// builder.Services.AddSqliteCollection<string, IngestedChunk>(IngestedChunk.CollectionName, vectorStoreConnectionString);
+// builder.Services.AddSingleton<DataIngestor>();
+// builder.Services.AddSingleton<SemanticSearch>();
+// builder.Services.AddKeyedSingleton("ingestion_directory", new DirectoryInfo(Path.Combine(builder.Environment.WebRootPath, "Data")));
+
+// builder.Services.AddScoped<ChatService>();
+
 builder.Services.AddScoped<UserSettingsService>();
-builder.Services.AddScoped<ChatService>();
+builder.Services.AddScoped<SessionState>();
+
+builder.Services.AddAgents();
 
 builder.Services.AddHttpClient("shelters-mcp", client =>
     client.BaseAddress = new Uri("http://shelters-api/mcp"))
@@ -75,12 +80,20 @@ if (!string.IsNullOrEmpty(acsEndpoint))
     builder.Services.AddSingleton(new CommunicationIdentityClient(acsUri, acsCredential));
     builder.Services.AddSingleton(new SmsClient(acsUri, acsCredential));
     builder.Services.AddSingleton<SmsSender>();
+    
+    // EmailClient usually requires a different endpoint (Data Plane) than the Management Plane or Identity.
+    // However, if using the same resource, it might work.
+    // Often Email is a separate resource or has a specific endpoint like "https://<resource-name>.unitedstates.communication.azure.com"
+    // Let's assume the same endpoint for now, or check if we need a separate configuration.
+    // Actually, Email Communication Services is often a separate resource linked to ACS.
+    // The endpoint for EmailClient is usually the ACS endpoint.
+    builder.Services.AddSingleton(new EmailClient(acsUri, acsCredential));
+    builder.Services.AddSingleton<EmailSender>();
 }
 // Azure Speech Service — endpoint and region injected by Aspire from Bicep outputs.
 // DefaultAzureCredential exchanges an AAD token for speech recognition in the browser.
 builder.Services.AddSingleton<SpeechTokenService>();
 
-builder.Services.AddKeyedSingleton("ingestion_directory", new DirectoryInfo(Path.Combine(builder.Environment.WebRootPath, "Data")));
 
 var app = builder.Build();
 
@@ -92,19 +105,10 @@ using (var scope = app.Services.CreateScope())
 }
 
 // Kick off document ingestion in the background so it's ready before the first chat message
-_ = app.Services.GetRequiredService<SemanticSearch>().LoadDocumentsAsync();
+// _ = app.Services.GetRequiredService<SemanticSearch>().LoadDocumentsAsync();
 
 app.MapDefaultEndpoints();
-
-app.MapGet("/api/speech/available", (SpeechTokenService s) => Results.Ok(s.IsConfigured));
-
-app.MapGet("/api/speech/token", async (SpeechTokenService s, CancellationToken ct) =>
-{
-    if (!s.IsConfigured)
-        return Results.StatusCode(503);
-    var info = await s.GetTokenAsync(ct);
-    return Results.Ok(info);
-});
+app.AddSpeechApiEndpoints();
 
 // Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())

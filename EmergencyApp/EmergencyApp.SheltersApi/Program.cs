@@ -5,6 +5,7 @@ using EmergencyApp.SheltersApi.Tools;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
+builder.AddServiceDefaults();
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
@@ -39,6 +40,7 @@ using (var scope = app.Services.CreateScope())
     await ShelterSeeder.SeedAsync(db);
 }
 
+app.MapDefaultEndpoints();
 app.MapShelterEndpoints();
 app.MapMcp("/mcp");
 

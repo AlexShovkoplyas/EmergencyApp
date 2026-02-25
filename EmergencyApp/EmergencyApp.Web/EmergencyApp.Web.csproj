@@ -20,6 +20,9 @@
   <ItemGroup>
     <!-- <PackageReference Include="Aspire.Azure.AI.OpenAI" Version="13.0.0-preview.1.25560.3" /> -->
     <PackageReference Include="Aspire.OpenAI" Version="13.1.1-preview.1.26105.8" />
+    <PackageReference Include="Azure.Communication.Email" Version="1.1.0" />
+    <PackageReference Include="Microsoft.Agents.AI.Workflows" Version="1.0.0-rc1" />
+
     <PackageReference Include="Aspire.Azure.Npgsql.EntityFrameworkCore.PostgreSQL" Version="13.1.1" />
     <PackageReference Include="Azure.AI.OpenAI" Version="2.8.0-beta.1" />
     <PackageReference Include="Azure.Communication.Identity" Version="1.3.1" />
@@ -48,10 +51,14 @@
     <ProjectReference Include="..\EmergencyApp.ServiceDefaults\EmergencyApp.ServiceDefaults.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Endpoints\" />
+  </ItemGroup>
+
   <!-- Install npm dependencies and copy the Speech SDK browser bundle to wwwroot/lib/speech/ -->
   <Target Name="NpmInstallSpeechSdk" BeforeTargets="Build" Inputs="package.json" Outputs="wwwroot/lib/speech/microsoft.cognitiveservices.speech.sdk.bundle-min.js">
     <Exec Command="npm install --prefer-offline" WorkingDirectory="$(ProjectDir)" />
     <Exec Command="node scripts/copy-speech-sdk.js" WorkingDirectory="$(ProjectDir)" />
   </Target>
-  
+
 </Project>

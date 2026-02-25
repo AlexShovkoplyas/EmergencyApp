@@ -1,5 +1,8 @@
 @page "/"
-@inject ChatService ChatService
+@using System.ComponentModel
+@using Microsoft.Extensions.AI
+@using Microsoft.Agents.AI
+@inject AIAgent Agent
 @inject NavigationManager Nav
 @implements IDisposable
 
@@ -7,54 +10,109 @@
 
 <ChatHeader OnNewChat="@ResetConversationAsync" />
 
-<ChatMessageList Messages="@ChatService.Messages" InProgressMessage="@ChatService.CurrentResponseMessage">
+<ChatMessageList Messages="@messages" InProgressMessage="@currentResponseMessage">
     <NoMessagesContent>
         <div>To get started, try asking about these example documents. You can replace these with your own data and replace this message.</div>
-        <ChatCitation File="Example_Emergency_Survival_Kit.pdf"/>
-        <ChatCitation File="Example_GPS_Watch.md"/>
     </NoMessagesContent>
 </ChatMessageList>
 
 <div class="chat-container">
     <ChatSuggestions OnSelected="@AddUserMessageAsync" @ref="@chatSuggestions" />
     <ChatInput OnSend="@AddUserMessageAsync" @ref="@chatInput" />
+    <SurveyPrompt /> @* Remove this line to eliminate the template survey message *@
 </div>
 
 @code {
+    private int statefulMessageCount;
+    private readonly ChatOptions chatOptions = new();
+    private readonly List<ChatMessage> messages = new();
+    private CancellationTokenSource? currentResponseCancellation;
+    private ChatMessage? currentResponseMessage;
     private ChatInput? chatInput;
     private ChatSuggestions? chatSuggestions;
 
     protected override void OnInitialized()
     {
-        ChatService.Initialize();
-        ChatService.OnStateChanged += OnChatStateChangedAsync;
-        ChatService.OnMessageStreamed += ChatMessageItem.NotifyChanged;
+        statefulMessageCount = 0;
     }
 
     private async Task AddUserMessageAsync(ChatMessage userMessage)
     {
+        CancelAnyCurrentResponse();
+
+        // Add the user message to the conversation
+        messages.Add(userMessage);
         chatSuggestions?.Clear();
         await chatInput!.FocusAsync();
 
-        await ChatService.AddUserMessageAsync(userMessage);
+        // Prepare response message
+        var responseText = new TextContent("");
+        currentResponseMessage = new ChatMessage(ChatRole.Assistant, [responseText]);
+        currentResponseCancellation = new();
+        
+        try 
+        {
+            // Use AIAgent to get the response.
+            // We pass the full message history to provide context.
+            // Note: messages contains the new user message already.
+            
+            await foreach (var update in Agent.RunStreamingAsync(messages, cancellationToken: currentResponseCancellation.Token))
+            {
+                var text = update.ToString();
+                if (!string.IsNullOrEmpty(text))
+                {
+                    responseText.Text += text;
+                    ChatMessageItem.NotifyChanged(currentResponseMessage);
+                    StateHasChanged();
+                }
+            }
+            
+            // Add the response to the messages list
+            if (currentResponseMessage != null)
+            {
+                messages.Add(currentResponseMessage);
+            }
+            currentResponseMessage = null;
+        }
+        catch (Exception ex) when (ex is not OperationCanceledException)
+        {
+            // Handle error
+            responseText.Text = $"Error: {ex.Message}";
+            if (currentResponseMessage != null)
+            {
+                messages.Add(currentResponseMessage);
+            }
+            currentResponseMessage = null;
+        }
 
-        chatSuggestions?.Update(ChatService.Messages);
+        // Begin getting suggestions
+        statefulMessageCount = chatOptions.ConversationId is not null ? messages.Count : 0;
+        chatSuggestions?.Update(messages);
+    }
+
+    private void CancelAnyCurrentResponse()
+    {
+        // If a response was cancelled while streaming, include it in the conversation so it's not lost
+        if (currentResponseMessage is not null)
+        {
+            messages.Add(currentResponseMessage);
+        }
+
+        currentResponseCancellation?.Cancel();
+        currentResponseMessage = null;
     }
 
     private async Task ResetConversationAsync()
     {
-        await ChatService.ResetAsync();
+        CancelAnyCurrentResponse();
+        messages.Clear();
+        // System prompt is handled by Agent
+        chatOptions.ConversationId = null;
+        statefulMessageCount = 0;
         chatSuggestions?.Clear();
         await chatInput!.FocusAsync();
     }
 
-    private async Task OnChatStateChangedAsync()
-        => await InvokeAsync(StateHasChanged);
-
     public void Dispose()
-    {
-        ChatService.OnStateChanged -= OnChatStateChangedAsync;
-        ChatService.OnMessageStreamed -= ChatMessageItem.NotifyChanged;
-        ChatService.Dispose();
-    }
+        => currentResponseCancellation?.Cancel();
 }

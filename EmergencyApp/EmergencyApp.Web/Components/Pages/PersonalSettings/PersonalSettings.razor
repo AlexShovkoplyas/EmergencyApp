@@ -93,6 +93,11 @@
                                     <InputText id="phone" class="form-input" @bind-Value="contactModel.PhoneNumber" placeholder="e.g. +1 555 000 1234" />
                                     <ValidationMessage For="() => contactModel.PhoneNumber" class="form-validation" />
                                 </div>
+                                <div class="form-field">
+                                    <label class="settings-label" for="email">Email (optional)</label>
+                                    <InputText id="email" class="form-input" @bind-Value="contactModel.Email" placeholder="e.g. contact@example.com" />
+                                    <ValidationMessage For="() => contactModel.Email" class="form-validation" />
+                                </div>
                             </div>
                             <div class="settings-form-footer">
                                 @if (contactSaveStatus == SaveStatus.Saved)
@@ -171,6 +176,9 @@
 
         [Required(ErrorMessage = "Phone number is required")]
         public string PhoneNumber { get; set; } = "";
+
+        [EmailAddress(ErrorMessage = "Invalid email address")]
+        public string? Email { get; set; }
     }
 
     private AddressFormModel addressModel = new();
@@ -200,6 +208,7 @@
             {
                 contactModel.FullName = contactPerson.FullName;
                 contactModel.PhoneNumber = contactPerson.PhoneNumber;
+                contactModel.Email = contactPerson.Email;
             }
         }
 
@@ -235,7 +244,8 @@
             await UserSettingsService.SaveContactPersonAsync(userId, new ContactPerson
             {
                 FullName = contactModel.FullName,
-                PhoneNumber = contactModel.PhoneNumber
+                PhoneNumber = contactModel.PhoneNumber,
+                Email = contactModel.Email
             });
             contactSaveStatus = SaveStatus.Saved;
         }

@@ -65,13 +65,15 @@ public class UserSettingsService(ApplicationDbContext db)
             settings.ContactPerson = new ContactPerson
             {
                 FullName = contactPerson.FullName,
-                PhoneNumber = contactPerson.PhoneNumber
+                PhoneNumber = contactPerson.PhoneNumber,
+                Email = contactPerson.Email
             };
         }
         else
         {
             settings.ContactPerson.FullName = contactPerson.FullName;
             settings.ContactPerson.PhoneNumber = contactPerson.PhoneNumber;
+            settings.ContactPerson.Email = contactPerson.Email;
         }
 
         await db.SaveChangesAsync();

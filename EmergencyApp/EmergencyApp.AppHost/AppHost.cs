@@ -40,6 +40,9 @@ var speech = builder.AddBicepTemplate("speech-service", "../../infra/speech-serv
 
 var sheltersApi = builder.AddProject<Projects.EmergencyApp_SheltersApi>("shelters-api");
 
+var googleClientId = builder.AddParameter("google-client-id", secret: true);
+var googleClientSecret = builder.AddParameter("google-client-secret", secret: true);
+
 var webApp = builder.AddProject<Projects.EmergencyApp_Web>("aichatweb-app", launchProfileName: "https");
 webApp
     .WithReference(chat)
@@ -55,6 +58,8 @@ webApp
     .WithEnvironment("SPEECH_KEY", speech.GetOutput("key"))
     .WithEnvironment("SPEECH_REGION", speech.GetOutput("location"))
     .WithExternalHttpEndpoints()
-    .WithEnvironment("MARKITDOWN_MCP_URL", markitdown.GetEndpoint(MarkItDownEndpointName));
+    .WithEnvironment("MARKITDOWN_MCP_URL", markitdown.GetEndpoint(MarkItDownEndpointName))
+    .WithEnvironment("Authentication__Google__ClientId", googleClientId)
+    .WithEnvironment("Authentication__Google__ClientSecret", googleClientSecret);
 
 builder.Build().Run();

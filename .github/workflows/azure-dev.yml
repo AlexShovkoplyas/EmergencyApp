@@ -49,9 +49,13 @@ jobs:
         run: azd provision --no-prompt
         env:
           AZURE_OPENAI: ${{ secrets.AZURE_OPENAI }}
+          GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID }}
+          GOOGLE_CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET }}
 
       - name: Deploy Application
         run: azd deploy --no-prompt
         env:
           AZURE_OPENAI: ${{ secrets.AZURE_OPENAI }}
+          GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID }}
+          GOOGLE_CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET }}
         

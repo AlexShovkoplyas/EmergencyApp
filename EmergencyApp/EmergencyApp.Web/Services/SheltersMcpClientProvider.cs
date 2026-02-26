@@ -14,7 +14,7 @@ public sealed class SheltersMcpClientProvider : IHostedService, IAsyncDisposable
     private readonly ILoggerFactory _loggerFactory;
     private readonly ILogger<SheltersMcpClientProvider> _logger;
 
-    public IReadOnlyList<AIFunction> Tools { get; private set; } = [];
+    public List<AIFunction> Tools { get; private set; } = [];
 
     public SheltersMcpClientProvider(
         IHttpClientFactory httpClientFactory,

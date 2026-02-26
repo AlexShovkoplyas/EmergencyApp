@@ -16,6 +16,14 @@ builder.Services.AddSwaggerGen(c =>
 var connectionString = builder.Configuration.GetConnectionString("SheltersDb")
     ?? "Data Source=shelters.db";
 
+// When running in a container, the app directory is often read-only.
+// Use the temp directory for the SQLite database to ensure it's writable.
+if (Environment.GetEnvironmentVariable("DOTNET_RUNNING_IN_CONTAINER") == "true")
+{
+    var dbPath = Path.Combine(Path.GetTempPath(), "shelters.db");
+    connectionString = $"Data Source={dbPath}";
+}
+
 builder.Services.AddDbContext<SheltersDbContext>(options =>
     options.UseSqlite(connectionString));
 

@@ -25,6 +25,8 @@ properties:
         value: '{{ .Env.POSTGRES_CONNECTIONSTRING }};Database=EmergencyAppDb'
       - name: connectionstrings--openai
         value: '{{ securedParameter "openai" }}'
+      - name: speech-key
+        value: '{{ .Env.SPEECH_KEY }}'
   template:
     containers:
       - image: {{ .Image }}
@@ -62,6 +64,14 @@ properties:
             secretRef: connectionstrings--emergencyappdb
           - name: ConnectionStrings__openai
             secretRef: connectionstrings--openai
+          - name: ConnectionStrings__chat
+            secretRef: connectionstrings--openai
+          - name: ConnectionStrings__embeddings
+            secretRef: connectionstrings--openai
+          - name: SPEECH_KEY
+            secretRef: speech-key
+          - name: SPEECH_REGION
+            value: '{{ .Env.SPEECH_REGION }}'
     scale:
       minReplicas: 1
 tags:

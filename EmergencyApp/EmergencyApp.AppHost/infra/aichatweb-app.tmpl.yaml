@@ -25,6 +25,10 @@ properties:
         value: '{{ .Env.POSTGRES_CONNECTIONSTRING }};Database=EmergencyAppDb'
       - name: connectionstrings--openai
         value: '{{ securedParameter "openai" }}'
+      - name: connectionstrings--chat
+        value: 'Endpoint=https://models.inference.ai.azure.com;Key={{ securedParameter "openai" }};Model=gpt-4o-mini'
+      - name: connectionstrings--embeddings
+        value: 'Endpoint=https://models.inference.ai.azure.com;Key={{ securedParameter "openai" }};Model=text-embedding-3-small'
       - name: speech-key
         value: '{{ .Env.SPEECH_KEY }}'
   template:
@@ -65,9 +69,9 @@ properties:
           - name: ConnectionStrings__openai
             secretRef: connectionstrings--openai
           - name: ConnectionStrings__chat
-            secretRef: connectionstrings--openai
+            secretRef: connectionstrings--chat
           - name: ConnectionStrings__embeddings
-            secretRef: connectionstrings--openai
+            secretRef: connectionstrings--embeddings
           - name: SPEECH_KEY
             secretRef: speech-key
           - name: SPEECH_REGION
